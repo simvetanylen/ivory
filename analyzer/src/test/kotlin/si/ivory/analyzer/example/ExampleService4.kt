@@ -3,14 +3,14 @@ package si.ivory.analyzer.example
 import si.ivory.analyzer.example.annotations.CommandHandler
 import java.util.*
 
-class ExampleService3(
+class ExampleService4(
     private val eventPublisher: EventPublisher,
     private val repository: ExampleRepository,
 ) {
 
     @CommandHandler
     fun handle(id: UUID, command: ExampleCommand) = mutate(id) {
-        eventPublisher.publish(ExampleEvent(text = command.text))
+        it.apply(command)
     }
 
     private fun mutate(id: UUID, mutation: (state: ExampleAggregate) -> Unit) {

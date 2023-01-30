@@ -1,8 +1,10 @@
 package si.ivory.analyzer.assembly
 
+import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 import org.objectweb.asm.tree.TypeInsnNode
+import kotlin.jvm.internal.Lambda
 
 
 fun MethodNode.instantiatedTypes(): List<Class<*>> {
@@ -19,6 +21,18 @@ inline fun <reified T> MethodNode.findInstructions(): List<T> {
     return this.instructions.filter {
         it is T
     } as List<T>
+}
+
+fun <T> MethodNode.findTypeInsn(type: Class<T>): List<ClassNode> {
+    val typeInsn = this.findInstructions<TypeInsnNode>()
+    return typeInsn.mapNotNull {
+        val classNode = it.desc.toClassNode()
+        if (classNode.superName.replace("/", ".") == type.canonicalName) {
+            classNode
+        } else {
+            null
+        }
+    }
 }
 
 fun MethodNode.parameterTypes(): List<Class<*>> {
@@ -43,8 +57,14 @@ fun MethodNode.getInstantiatedTypesRecursively(ownerPrefix: String, depth: Int =
 }
 
 fun MethodNode.getAllChildMethodNodes(ownerPrefix: String, depth: Int = 4): List<MethodNode> {
-    val directChildren = this.findInstructions<MethodInsnNode>()
+    val methodCalls = this.findInstructions<MethodInsnNode>()
         .mapNotNull { it.resolveMethodNode(ownerPrefix) }
+
+    val lambdas = this.findTypeInsn(Lambda::class.java)
+        .map { it.methods }
+        .flatten()
+
+    val directChildren = methodCalls + lambdas
 
     if (depth == 0) {
         return directChildren

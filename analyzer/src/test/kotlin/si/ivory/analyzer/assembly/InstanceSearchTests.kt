@@ -2,10 +2,7 @@ package si.ivory.analyzer.assembly
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import si.ivory.analyzer.example.ExampleAggregate
-import si.ivory.analyzer.example.ExampleEvent
-import si.ivory.analyzer.example.ExampleService1
-import si.ivory.analyzer.example.ExampleService2
+import si.ivory.analyzer.example.*
 import si.ivory.analyzer.example.annotations.CommandHandler
 
 class InstanceSearchTests {
@@ -35,6 +32,28 @@ class InstanceSearchTests {
     @Test
     fun test3() {
         val target = ExampleService2::class.java.canonicalName
+
+        val types = target.toClassNode().methods.find {
+            it.isAnnotatedWith(CommandHandler::class.java)
+        }!!.getInstantiatedTypesRecursively("si/ivory")
+
+        assertTrue(types.contains(ExampleEvent::class.java))
+    }
+
+    @Test
+    fun test4() {
+        val target = ExampleService3::class.java.canonicalName
+
+        val types = target.toClassNode().methods.find {
+            it.isAnnotatedWith(CommandHandler::class.java)
+        }!!.getInstantiatedTypesRecursively("si/ivory")
+
+        assertTrue(types.contains(ExampleEvent::class.java))
+    }
+
+    @Test
+    fun test5() {
+        val target = ExampleService4::class.java.canonicalName
 
         val types = target.toClassNode().methods.find {
             it.isAnnotatedWith(CommandHandler::class.java)
