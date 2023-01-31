@@ -1,1 +1,2 @@
-include 'analyzer'
+include ':analyzer'
+
